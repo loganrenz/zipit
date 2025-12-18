@@ -31,11 +31,12 @@ jobs:
 
       - name: Install Doppler CLI
         uses: dopplerhq/cli-action@v3
-        with:
-          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: Setup Doppler
-        run: doppler setup --no-interactive --project zipit --config ci
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: |
+          doppler setup --no-interactive --project zipit --config ci --token $DOPPLER_TOKEN
 
       - name: Install dependencies
         run: npm ci
@@ -90,10 +91,9 @@ jobs:
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version || exit 0
 
       - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: $(doppler secrets get NPM_TOKEN --plain)
         run: |
-          npm config set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
+          NPM_TOKEN=$(doppler secrets get NPM_TOKEN --plain)
+          npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
           npm config set //registry.npmjs.org/:always-auth true
           npm publish --access public
 

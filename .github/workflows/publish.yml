@@ -92,9 +92,9 @@ jobs:
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version || exit 0
 
       - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: $(doppler secrets get NPM_TOKEN --plain)
         run: |
+          NPM_TOKEN=$(doppler secrets get NPM_TOKEN --plain)
+          export NODE_AUTH_TOKEN=$NPM_TOKEN
           npm publish --access public
 
       - name: Create Git tag

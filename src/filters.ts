@@ -164,27 +164,41 @@ export class FileFilter {
   shouldExclude(filePath: string, relativeToRoot: string = ''): boolean {
     // Normalize path separators
     const normalizedPath = filePath.replace(/\\/g, '/');
-    const relativePath = relativeToRoot 
-      ? normalizedPath.replace(relativeToRoot.replace(/\\/g, '/'), '').replace(/^\//, '')
-      : normalizedPath;
+    let relativePath: string;
+    
+    if (relativeToRoot) {
+      const rootNormalized = relativeToRoot.replace(/\\/g, '/');
+      relativePath = normalizedPath.replace(rootNormalized, '').replace(/^\//, '');
+    } else {
+      relativePath = normalizedPath;
+    }
 
-    // Check against ignore patterns
-    if (this.ig.ignores(relativePath) || this.ig.ignores(normalizedPath)) {
-      // But allow if explicitly included
-      if (this.customIncludes.length > 0) {
-        return !this.customIncludes.some(include => {
-          const includePattern = include.replace(/\\/g, '/');
-          return relativePath.includes(includePattern) || normalizedPath.includes(includePattern);
-        });
+    // Ensure relativePath is relative (not absolute)
+    if (relativePath.startsWith('/')) {
+      relativePath = relativePath.substring(1);
+    }
+
+    // Check against ignore patterns (only use relative path for ignore library)
+    try {
+      if (this.ig.ignores(relativePath)) {
+        // But allow if explicitly included
+        if (this.customIncludes.length > 0) {
+          return !this.customIncludes.some(include => {
+            const includePattern = include.replace(/\\/g, '/');
+            return relativePath.includes(includePattern);
+          });
+        }
+        return true;
       }
-      return true;
+    } catch (error) {
+      // If ignore check fails, fall through to custom excludes
     }
 
     // Check custom excludes
     if (this.customExcludes.length > 0) {
       const shouldExclude = this.customExcludes.some(exclude => {
         const excludePattern = exclude.replace(/\\/g, '/');
-        return relativePath.includes(excludePattern) || normalizedPath.includes(excludePattern);
+        return relativePath.includes(excludePattern);
       });
       if (shouldExclude) {
         return true;

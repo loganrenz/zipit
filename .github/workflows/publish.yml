@@ -36,7 +36,8 @@ jobs:
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         run: |
-          doppler setup --no-interactive --project zipit --config ci --token $DOPPLER_TOKEN
+          doppler configure set token $DOPPLER_TOKEN --scope /
+          doppler setup --no-interactive --project zipit --config dev
 
       - name: Install dependencies
         run: npm ci

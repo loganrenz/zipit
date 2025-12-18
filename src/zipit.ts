@@ -92,9 +92,19 @@ export async function createZip(options: ZipOptions = {}): Promise<string> {
       let addedCount = 0;
       let excludedCount = 0;
 
+      // Get relative output path for exclusion
+      const outputRelativePath = relative(rootDir, outputPath);
+
       files.forEach((file) => {
         const fullPath = join(rootDir, file);
-        const relativePath = relative(rootDir, fullPath);
+        // file is already relative from glob, but normalize it to ensure proper format
+        const relativePath = file.split(/[/\\]/).join('/');
+
+        // Skip the output file itself
+        if (relativePath === outputRelativePath || fullPath === outputPath) {
+          excludedCount++;
+          return;
+        }
 
         // Check if file should be included
         if (filter.shouldInclude(fullPath, rootDir)) {

@@ -1,6 +1,6 @@
 {
   "name": "@narduk/cursor-zipit",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Create zip archives and text dumps of project code with smart exclusions for Cursor AI",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

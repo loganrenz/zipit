@@ -11,7 +11,7 @@
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "postinstall": "node bin/postinstall.js",
-    "test": "node --loader ts-node/esm --no-warnings tests/integration.test.ts || echo 'Tests skipped - integration tests require GitHub CLI'",
+    "test": "tsx tests/integration.test.ts || echo 'Tests skipped - integration tests require GitHub CLI'",
     "prepare": "npm run build"
   },
   "keywords": [

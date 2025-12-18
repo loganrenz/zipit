@@ -31,6 +31,7 @@ jobs:
       - name: Run tests
         run: npm test
         continue-on-error: true
+        if: always()
 
       - name: Check package
         run: npm pack --dry-run

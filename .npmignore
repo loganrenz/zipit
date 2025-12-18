@@ -1,0 +1,51 @@
+# Source files (only dist is needed)
+src/
+tests/
+tsconfig.json
+
+# Development files
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+.cursor/
+
+# Test outputs
+coverage/
+.nyc_output/
+
+# Temporary files
+*.zip
+*.txt
+tmp/
+temp/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build artifacts (keep dist/)
+*.map
+
+# Documentation (keep README.md and LICENSE)
+docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Misc
+*.swp
+*.swo
+*~
+

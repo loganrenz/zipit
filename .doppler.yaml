@@ -1,0 +1,7 @@
+# Doppler configuration for zipit project
+# This file is automatically managed by Doppler CLI
+# Run: doppler setup --project zipit --config dev
+
+project: zipit
+config: dev
+

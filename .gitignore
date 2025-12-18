@@ -1,0 +1,19 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+*.zip
+*.txt
+.env
+.env.local
+.env.*.local
+.idea/
+.vscode/
+.cursor/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Doppler
+.doppler/
+

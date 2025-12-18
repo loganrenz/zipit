@@ -113,6 +113,10 @@ async function cloneRepo(url: string, dest: string): Promise<boolean> {
   console.log(`\n📥 Cloning ${url} to ${dest}...`);
   
   try {
+    // Clean up destination if it exists
+    if (existsSync(dest)) {
+      execSync(`rm -rf ${dest}`, { stdio: 'ignore' });
+    }
     execSync(`git clone --depth 1 ${url} ${dest}`, { stdio: 'inherit' });
     return true;
   } catch (error) {

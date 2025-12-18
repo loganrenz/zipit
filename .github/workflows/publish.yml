@@ -87,9 +87,9 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" > .npmrc
+          npm config set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
+          npm config set //registry.npmjs.org/:always-auth true
           npm publish --access public
-          rm -f .npmrc
 
       - name: Create Git tag
         if: github.event_name != 'release'

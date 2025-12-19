@@ -1,5 +1,5 @@
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
-import { join, relative, resolve } from 'path';
+import { join, relative, resolve, isAbsolute } from 'path';
 import { glob } from 'glob';
 import archiver from 'archiver';
 import { FileFilter } from './filters';
@@ -33,7 +33,7 @@ export async function createZip(options: ZipOptions = {}): Promise<string> {
   // Load .gitignore files
   filter.loadGitignore(rootDir);
 
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (promiseResolve, reject) => {
     const output = createWriteStream(outputPath);
     const archive = archiver('zip', {
       zlib: { level: 9 }, // Maximum compression
@@ -42,7 +42,7 @@ export async function createZip(options: ZipOptions = {}): Promise<string> {
     output.on('close', () => {
       console.log(`✓ Zip archive created: ${outputPath}`);
       console.log(`  Total size: ${archive.pointer()} bytes`);
-      resolve(outputPath);
+      promiseResolve(outputPath);
     });
 
     archive.on('error', (err) => {
@@ -58,6 +58,30 @@ export async function createZip(options: ZipOptions = {}): Promise<string> {
         dot: false, // Don't include dotfiles by default (except those we explicitly want)
         ignore: ['node_modules/**', '.git/**'], // Quick filter for common exclusions
         absolute: false,
+      });
+
+      // Normalize all paths to be relative to rootDir
+      // This handles edge cases where glob might return absolute paths despite absolute: false
+      files = files.map((file) => {
+        // Check if file is an absolute path (glob should return relative, but handle edge cases)
+        let absolutePath: string;
+        if (isAbsolute(file)) {
+          // If absolute, use it directly (but verify it's within rootDir)
+          absolutePath = file;
+        } else {
+          // If relative, resolve it relative to rootDir
+          absolutePath = resolve(rootDir, file);
+        }
+        
+        // Convert to relative path from rootDir
+        const relPath = relative(rootDir, absolutePath);
+        
+        // Normalize path separators to forward slashes
+        return relPath.split(/[/\\]/).join('/');
+      }).filter((file) => {
+        // Filter out paths that are outside rootDir (safety check)
+        // relative() returns paths starting with '../' if outside rootDir
+        return file && !file.startsWith('../') && !file.startsWith('..\\') && file !== '..';
       });
 
       // Also include dotfiles that are typically code files
@@ -82,8 +106,19 @@ export async function createZip(options: ZipOptions = {}): Promise<string> {
       const dotFileResults = await Promise.all(dotFilePromises);
       const dotFiles = dotFileResults.flat();
 
+      // Normalize dotfile paths as well
+      const normalizedDotFiles = dotFiles.map((file) => {
+        // Handle both absolute and relative paths from glob
+        const absolutePath = isAbsolute(file) ? file : resolve(rootDir, file);
+        const relPath = relative(rootDir, absolutePath);
+        return relPath.split(/[/\\]/).join('/');
+      }).filter((file) => {
+        // Filter out paths that are outside rootDir
+        return file && !file.startsWith('../') && !file.startsWith('..\\') && file !== '..';
+      });
+
       // Add dotfiles that aren't already in the files list
-      dotFiles.forEach((file) => {
+      normalizedDotFiles.forEach((file) => {
         if (!files.includes(file)) {
           files.push(file);
         }
@@ -96,9 +131,10 @@ export async function createZip(options: ZipOptions = {}): Promise<string> {
       const outputRelativePath = relative(rootDir, outputPath);
 
       files.forEach((file) => {
-        const fullPath = join(rootDir, file);
-        // file is already relative from glob, but normalize it to ensure proper format
-        const relativePath = file.split(/[/\\]/).join('/');
+        // Ensure file is always relative at this point
+        const normalizedFile = file.split(/[/\\]/).join('/');
+        const fullPath = join(rootDir, normalizedFile);
+        const relativePath = normalizedFile;
 
         // Skip the output file itself
         if (relativePath === outputRelativePath || fullPath === outputPath) {
